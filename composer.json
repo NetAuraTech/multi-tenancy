@@ -1,0 +1,45 @@
+{
+    "name": "netauratech/multi-tenancy",
+    "description": "A Laravel package enabling the core CMS to support multi-tenancy.",
+    "license": "MIT",
+    "keywords": [
+        "laravel",
+        "cms",
+        "core"
+    ],
+    "autoload": {
+        "psr-4": {
+            "Netauratech\\MultiTenancy\\": "src/",
+            "Database\\Factories\\": "src/database/factories/",
+            "Database\\Seeders\\": "src/database/seeders/"
+        }
+    },
+    "authors": [
+        {
+            "name": "NetAuraTech",
+            "email": "contact@netauratech.fr"
+        }
+    ],
+    "require": {
+        "php": "^8.1",
+        "laravel/framework": "^12.0",
+        "netauratech/core-cms": "dev-main",
+        "stancl/tenancy": "^3.9"
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Netauratech\\MultiTenancy\\MultiTenancyServiceProvider"
+            ]
+        }
+    },
+    "config": {
+        "sort-packages": true
+    },
+    "repositories": [
+        {
+            "type": "path",
+            "url": "../core-cms"
+        }
+    ]
+}
