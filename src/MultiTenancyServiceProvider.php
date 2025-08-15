@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
+use Netauratech\CoreCms\Contracts\BackupProviderInterface;
 use Netauratech\CoreCms\Contracts\ContentProviderInterface;
 use Netauratech\CoreCms\Events\LangLoaded;
 use Netauratech\CoreCms\Models\Option;
@@ -18,6 +19,7 @@ use Netauratech\MultiTenancy\Http\Middlewares\AssignLSTagsMiddleware;
 use Netauratech\MultiTenancy\Http\Middlewares\CheckTenantForMaintenanceModeMiddleware;
 use Netauratech\MultiTenancy\Http\Middlewares\LoadTenantEnvMiddleware;
 use Netauratech\MultiTenancy\Http\Middlewares\TenantViewMiddleware;
+use Netauratech\MultiTenancy\Services\BackupProvider;
 use Stancl\JobPipeline\JobPipeline;
 use Stancl\Tenancy\Events;
 use Stancl\Tenancy\Jobs;
@@ -100,7 +102,7 @@ class MultiTenancyServiceProvider extends ServiceProvider
     }
     public function register(): void
     {
-
+        $this->app->bind(BackupProviderInterface::class, BackupProvider::class);
     }
     public function boot(MenuManager $menuManager, AssetManager $assetManager): void
     {
