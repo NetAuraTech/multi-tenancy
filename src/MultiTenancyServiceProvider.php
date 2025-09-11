@@ -3,16 +3,9 @@
 namespace Netauratech\MultiTenancy;
 
 use Illuminate\Contracts\Http\Kernel;
-use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Event;
-use Illuminate\Support\Facades\Route;
-use Illuminate\Support\Facades\Schema;
-use Illuminate\Support\Facades\View;
-use Illuminate\Support\ServiceProvider;
 use Netauratech\CoreCms\Contracts\BackupProviderInterface;
-use Netauratech\CoreCms\Contracts\ContentProviderInterface;
-use Netauratech\CoreCms\Events\LangLoaded;
-use Netauratech\CoreCms\Models\Option;
+use Netauratech\CoreCms\Services\AbstractCmsServiceProvider;
 use Netauratech\CoreCms\Services\Admin\MenuManager;
 use Netauratech\CoreCms\Services\AssetManager;
 use Netauratech\MultiTenancy\Http\Middlewares\AssignLSTagsMiddleware;
@@ -28,9 +21,27 @@ use Stancl\Tenancy\Middleware;
 use Stancl\Tenancy\Middleware\PreventAccessFromCentralDomains;
 use Stancl\Tenancy\Middleware\InitializeTenancyByDomain;
 
-class MultiTenancyServiceProvider extends ServiceProvider
+class MultiTenancyServiceProvider extends AbstractCmsServiceProvider
 {
     public static string $controllerNamespace = '';
+
+    protected function getPackageName(): string
+    {
+        return 'multi-tenancy';
+    }
+
+    protected function getBootstrapConfig(): array
+    {
+        $config = parent::getBootstrapConfig();
+
+        $config['assets'] = false;
+        $config['routes']['web'] = false;
+        $config['routes']['api'] = false;
+        $config['routes']['auth'] = false;
+        $config['publishes']['assets'] = false;
+
+        return $config;
+    }
 
     public function events(): array
     {
@@ -106,6 +117,8 @@ class MultiTenancyServiceProvider extends ServiceProvider
     }
     public function boot(MenuManager $menuManager, AssetManager $assetManager): void
     {
+        $this->bootstrapPackage();
+
         $this->bootEvents();
         $this->makeTenancyMiddlewareHighestPriority();
 
@@ -125,45 +138,6 @@ class MultiTenancyServiceProvider extends ServiceProvider
         $currentWebMiddlewareGroup = $kernel->getMiddlewareGroups()['web'];
         $updatedWebMiddlewareGroup = array_merge($multiTenancyMiddlewares, $currentWebMiddlewareGroup);
         $kernel->setMiddlewareGroups(array_merge($kernel->getMiddlewareGroups(), ['web' => $updatedWebMiddlewareGroup]));
-
-        // Publish the configuration file
-        $this->publishes([
-            __DIR__.'/../config/tenancy.php' => config_path('tenancy.php'),
-        ], 'multi-tenancy-config');
-
-        $this->publishes([
-            __DIR__.'/database/migrations/' => database_path('migrations'),
-        ], 'multi-tenancy-migrations');
-
-        $this->publishes([
-            __DIR__.'/database/seeders/' => database_path('seeders')
-        ], 'multi-tenancy-seeders');
-
-        $this->loadMigrationsFrom(__DIR__.'/database/migrations');
-
-        // Load all views
-        $this->loadViewsFrom(__DIR__.'/resources/views', 'multi-tenancy');
-
-        // Register Assets
-        $assetManager->registerTranslationPath('multi-tenancy', __DIR__.'/lang');
-
-        // Lang
-        $this->loadTranslationsFrom(__DIR__.'/lang', 'multi-tenancy');
-        LangLoaded::dispatch('multi-tenancy');
-
-        // Allows you to publish translations of the package
-        $this->publishes([
-            __DIR__.'/lang' => $this->app->langPath('vendor/multi-tenancy'),
-        ], 'multi-tenancy-translations');
-
-        // Routes admin
-        Route::group([
-            'middleware' => config('core-cms.admin.middleware'),
-            'prefix' => config('core-cms.admin.prefix'),
-            'as' => config('core-cms.admin.name'),
-        ], function () {
-            $this->loadRoutesFrom(__DIR__.'/routes/admin.php');
-        });
 
         $menuManager->registerMenuItem('tenant', [
             'label' => trans_choice('multi-tenancy::admin.tenant.value', 0),
