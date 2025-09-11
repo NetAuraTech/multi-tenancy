@@ -58,17 +58,17 @@ composer require netauratech/multi-tenancy
 
 ```bash
 # Configuration
-php artisan vendor:publish --tag=multi-tenancy-config
+php artisan vendor:publish --tag=core-cms-config
 
 # Migrations
-php artisan vendor:publish --tag=multi-tenancy-migrations
+php artisan vendor:publish --tag=core-cms-migrations
 php artisan migrate
 
 # Seeders
-php artisan vendor:publish --tag=multi-tenancy-seeders
+php artisan vendor:publish --tag=core-cms-seeders
 
 # Translations
-php artisan vendor:publish --tag=multi-tenancy-translations
+php artisan vendor:publish --tag=core-cms-translations
 ```
 
 ### 2. Environment Variables
