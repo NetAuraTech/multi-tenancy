@@ -5,6 +5,7 @@ namespace Netauratech\MultiTenancy;
 use Illuminate\Contracts\Http\Kernel;
 use Illuminate\Support\Facades\Event;
 use Netauratech\CoreCms\Contracts\BackupProviderInterface;
+use Netauratech\CoreCms\Contracts\CacheServiceInterface;
 use Netauratech\CoreCms\Services\AbstractCmsServiceProvider;
 use Netauratech\CoreCms\Services\Admin\MenuManager;
 use Netauratech\CoreCms\Services\AssetManager;
@@ -13,6 +14,7 @@ use Netauratech\MultiTenancy\Http\Middlewares\CheckTenantForMaintenanceModeMiddl
 use Netauratech\MultiTenancy\Http\Middlewares\LoadTenantEnvMiddleware;
 use Netauratech\MultiTenancy\Http\Middlewares\TenantViewMiddleware;
 use Netauratech\MultiTenancy\Services\BackupProvider;
+use Netauratech\MultiTenancy\Services\TenancyCacheService;
 use Stancl\JobPipeline\JobPipeline;
 use Stancl\Tenancy\Events;
 use Stancl\Tenancy\Jobs;
@@ -114,6 +116,7 @@ class MultiTenancyServiceProvider extends AbstractCmsServiceProvider
     public function register(): void
     {
         $this->app->bind(BackupProviderInterface::class, BackupProvider::class);
+        $this->app->bind(CacheServiceInterface::class, TenancyCacheService::class);
     }
     public function boot(MenuManager $menuManager, AssetManager $assetManager): void
     {
