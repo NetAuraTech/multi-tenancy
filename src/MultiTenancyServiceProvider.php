@@ -122,6 +122,10 @@ class MultiTenancyServiceProvider extends AbstractCmsServiceProvider
     {
         $this->bootstrapPackage();
 
+        $this->publishes([
+            __DIR__.'/../config/tenancy.php' => config_path('tenancy.php'),
+        ], 'core-cms-config');
+
         $this->bootEvents();
         $this->makeTenancyMiddlewareHighestPriority();
 
