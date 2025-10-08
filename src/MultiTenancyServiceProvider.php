@@ -2,6 +2,7 @@
 
 namespace Netauratech\MultiTenancy;
 
+use Database\Seeders\TenancyPermissionsSeeder;
 use Illuminate\Contracts\Http\Kernel;
 use Illuminate\Support\Facades\Event;
 use Netauratech\CoreCms\Contracts\BackupProviderInterface;
@@ -43,6 +44,13 @@ class MultiTenancyServiceProvider extends AbstractCmsServiceProvider
         $config['publishes']['assets'] = false;
 
         return $config;
+    }
+
+    protected function getSeeders(): array
+    {
+        return [
+            TenancyPermissionsSeeder::class,
+        ];
     }
 
     public function events(): array
