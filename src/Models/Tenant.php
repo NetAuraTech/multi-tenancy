@@ -18,8 +18,23 @@ class Tenant extends BaseTenant implements TenantWithDatabase
     {
         static::created(function (Tenant $tenant) {
             $tenantId = $tenant->id;
+            $tenantDirectory = storage_path("tenant_{$tenantId}");
 
-            $envPath = storage_path("tenant_{$tenantId}/.env");
+            $directories = [
+                $tenantDirectory,
+                "{$tenantDirectory}/app",
+                "{$tenantDirectory}/app/public",
+                "{$tenantDirectory}/app/public/css",
+                "{$tenantDirectory}/app/private",
+            ];
+
+            foreach ($directories as $directory) {
+                if (!File::exists($directory)) {
+                    File::makeDirectory($directory, 0755, true);
+                }
+            }
+
+            $envPath = "{$tenantDirectory}/.env";
 
             if (!File::exists($envPath)) {
                 $envContent = [
@@ -36,11 +51,14 @@ class Tenant extends BaseTenant implements TenantWithDatabase
                 File::put($envPath, $envFileContent);
             }
 
-            $tenant->run(function () {
-                $option = Option::where('key', 'site_name');
-                $option->update([
-                    'value' => tenant()->name
-                ]);
+            $tenant->run(function () use ($tenant) {
+                $option = Option::where('key', 'site_name')->first();
+
+                if ($option) {
+                    $option->update([
+                        'value' => $tenant->name
+                    ]);
+                }
             });
         });
     }
