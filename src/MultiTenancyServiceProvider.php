@@ -12,6 +12,7 @@ use Netauratech\CoreCms\Services\Admin\MenuManager;
 use Netauratech\CoreCms\Services\AssetManager;
 use Netauratech\MultiTenancy\Http\Middlewares\AssignLSTagsMiddleware;
 use Netauratech\MultiTenancy\Http\Middlewares\CheckTenantForMaintenanceModeMiddleware;
+use Netauratech\MultiTenancy\Http\Middlewares\InitializeTenancyByDomainOrSkip;
 use Netauratech\MultiTenancy\Http\Middlewares\LoadTenantEnvMiddleware;
 use Netauratech\MultiTenancy\Http\Middlewares\TenantViewMiddleware;
 use Netauratech\MultiTenancy\Services\BackupProvider;
@@ -21,8 +22,6 @@ use Stancl\Tenancy\Events;
 use Stancl\Tenancy\Jobs;
 use Stancl\Tenancy\Listeners;
 use Stancl\Tenancy\Middleware;
-use Stancl\Tenancy\Middleware\PreventAccessFromCentralDomains;
-use Stancl\Tenancy\Middleware\InitializeTenancyByDomain;
 
 class MultiTenancyServiceProvider extends AbstractCmsServiceProvider
 {
@@ -139,8 +138,7 @@ class MultiTenancyServiceProvider extends AbstractCmsServiceProvider
 
         $multiTenancyMiddlewares = [
             'universal',
-            InitializeTenancyByDomain::class,
-            PreventAccessFromCentralDomains::class,
+            InitializeTenancyByDomainOrSkip::class,
             CheckTenantForMaintenanceModeMiddleware::class,
             AssignLSTagsMiddleware::class,
             TenantViewMiddleware::class,
