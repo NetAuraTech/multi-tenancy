@@ -47,8 +47,8 @@ class TenantViewMiddleware
 
                 View::composer('*', function ($view) use ($ret) {
                     $view->with('options', $ret['options']);
-                    $view->with('favicon', $ret['options']['favicon'] ? image_url($ret['options']['favicon'], 128) : "");
-                    $view->with('openGraphLogo', $ret['options']['logo'] ? image_url($ret['options']['logo']) : "");
+                    $view->with('favicon', $ret['options']['favicon'] ?? null ? image_url($ret['options']['favicon'], 128) : null);
+                    $view->with('openGraphLogo', $ret['options']['logo'] ?? null ? image_url($ret['options']['logo']) : null);
                     $view->with('cacheBuster', substr(md5(json_encode($ret['theme']->updated_at)), 0, 8));
                 });
             }
