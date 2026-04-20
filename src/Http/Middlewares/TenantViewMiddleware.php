@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\View;
 use Netauratech\CoreCms\Contracts\ContentProviderInterface;
+use Netauratech\CoreCms\Contracts\MediaProviderInterface;
 use Netauratech\CoreCms\Models\Option;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -45,11 +46,13 @@ class TenantViewMiddleware
                     return ["options" => $data, "theme" => $theme];
                 });
 
-                View::composer('*', function ($view) use ($ret) {
+                $mediaProvider = app()->make(MediaProviderInterface::class);
+
+                View::composer('*', function ($view) use ($ret, $mediaProvider) {
                     $view->with('options', $ret['options']);
                     $view->with('favicon', $ret['options']['favicon'] ?? null ? image_url($ret['options']['favicon'], 128) : null);
-                    $view->with('openGraphLogo', $ret['options']['logo'] ?? null ? image_url($ret['options']['logo']) : null);
-                    $view->with('cacheBuster', substr(md5(json_encode($ret['theme']->updated_at)), 0, 8));
+                    $view->with('openGraphLogo', $ret['options']['logo'] ?? null ? $mediaProvider->get($ret['options']['logo']) : null);
+                    $view->with('cacheBuster', isset($ret['theme']->updated_at) ? substr(md5(json_encode($ret['theme']->updated_at)), 0, 8) : 'dev');
                 });
             }
         }
