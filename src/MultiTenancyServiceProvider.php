@@ -149,7 +149,7 @@ class MultiTenancyServiceProvider extends AbstractCmsServiceProvider
         $kernel = $this->app->make(Kernel::class);
         $kernel->setMiddlewareGroups(array_merge($kernel->getMiddlewareGroups(), ['universal' => []]));
         $currentWebMiddlewareGroup = $kernel->getMiddlewareGroups()['web'];
-        $updatedWebMiddlewareGroup = array_merge($multiTenancyMiddlewares, $currentWebMiddlewareGroup);
+        $updatedWebMiddlewareGroup = array_merge($currentWebMiddlewareGroup, $multiTenancyMiddlewares);
         $kernel->setMiddlewareGroups(array_merge($kernel->getMiddlewareGroups(), ['web' => $updatedWebMiddlewareGroup]));
 
         $menuManager->registerMenuItem('tenant', [
