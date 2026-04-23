@@ -19,40 +19,54 @@ class TenantViewMiddleware
      *
      * @param Closure(Request): (Response) $next
      */
-    public function handle(Request $request, Closure $next)
+    public function handle(Request $request, Closure $next): Response
     {
         if (tenant()) {
-            if (Schema::hasTable('options')) {
-                $cache = Cache::store('database');
-                $ret = $cache->remember('options', 60 * 60, function () {
-                    $opts = Option::all();
-                    $data = [];
-                    $contentProvider = app()->make(ContentProviderInterface::class);
+            $hasOptionsTable = Cache::rememberForever('schema_has_options', function () {
+                return Schema::hasTable('options');
+            });
 
-                    $theme = null;
+            if ($hasOptionsTable) {
+                View::composer(['core-cms::base', 'core-cms::front/page', 'core-cms::auth/*', 'core-cms::profile/*', 'core-cms::admin.base', 'theme::*'], function ($view) {
+                    $cache = Cache::getFacadeRoot();
+                    $ret = $cache->remember('options_optimized', 3600, function () {
+                        $opts = Option::all();
+                        $data = [];
+                        $contentProvider = app()->make(ContentProviderInterface::class);
+                        $mediaProvider = app()->make(MediaProviderInterface::class);
+                        $theme = null;
 
-                    foreach ($opts as $option) {
-                        $valueToStore = $option->value ?? '';
+                        foreach ($opts as $option) {
+                            $valueToStore = $option->value ?? '';
 
-                        if (($option->type === 'content' || $option->type === 'template') && $option->value !== "") {
-                            $contentItem = $contentProvider->getContentById($option->value);
-                            $valueToStore = $contentItem;
+                            if (($option->type === 'content' || $option->type === 'template') && $option->value !== "") {
+                                $valueToStore = $contentProvider->getContentById($option->value);
+                            }
+
+                            if ($option->type === 'theme') {
+                                $theme = $option;
+                            }
+
+                            $data[$option->key] = $valueToStore;
                         }
-                        if ($option->type === 'theme') {
-                            $theme = $option;
-                        }
-                        $data[$option->key] = $valueToStore;
-                    }
-                    return ["options" => $data, "theme" => $theme];
-                });
 
-                $mediaProvider = app()->make(MediaProviderInterface::class);
+                        $favicon = (isset($data['favicon']) && $data['favicon']) ? image_url($data['favicon'], 128) : null;
+                        $ogLogo = (isset($data['logo']) && $data['logo']) ? $mediaProvider->get($data['logo']) : null;
+                        $cacheBuster = isset($theme->updated_at) ? substr(md5(json_encode($theme->updated_at)), 0, 8) : 'dev';
 
-                View::composer('*', function ($view) use ($ret, $mediaProvider) {
+                        return [
+                            "options"        => $data,
+                            "theme"          => $theme,
+                            "favicon"        => $favicon,
+                            "openGraphLogo"  => $ogLogo,
+                            "cacheBuster"    => $cacheBuster
+                        ];
+                    });
+
                     $view->with('options', $ret['options']);
-                    $view->with('favicon', $ret['options']['favicon'] ?? null ? image_url($ret['options']['favicon'], 128) : null);
-                    $view->with('openGraphLogo', $ret['options']['logo'] ?? null ? $mediaProvider->get($ret['options']['logo']) : null);
-                    $view->with('cacheBuster', isset($ret['theme']->updated_at) ? substr(md5(json_encode($ret['theme']->updated_at)), 0, 8) : 'dev');
+                    $view->with('favicon', $ret['favicon']);
+                    $view->with('openGraphLogo', $ret['openGraphLogo']);
+                    $view->with('cacheBuster', $ret['cacheBuster']);
                 });
             }
         }
