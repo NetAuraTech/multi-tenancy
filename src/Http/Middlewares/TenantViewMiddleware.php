@@ -27,7 +27,7 @@ class TenantViewMiddleware
             });
 
             if ($hasOptionsTable) {
-                View::composer(['core-cms::base', 'core-cms::front/page', 'core-cms::auth/*', 'core-cms::profile/*', 'core-cms::admin.base', 'theme::*'], function ($view) {
+                View::composer(['core-cms::base', 'core-cms::front/page', 'portfolio-manager::front/portfolio.show', 'core-cms::auth/*', 'core-cms::profile/*', 'core-cms::admin.base', 'core-cms::admin.contents.preview', 'theme::*'], function ($view) {
                     $cache = Cache::getFacadeRoot();
                     $ret = $cache->remember('options_optimized', 3600, function () {
                         $opts = Option::all();
